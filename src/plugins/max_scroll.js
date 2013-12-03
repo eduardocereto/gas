@@ -9,6 +9,8 @@
  * @author Eduardo Cereto <eduardocereto@gmail.com>
  */
 
+var _maxScrollOpts;
+
 /**
  * Get current browser viewpane heigtht
  *
@@ -64,7 +66,7 @@ function _update_scroll_percentage(now) {
         _max_scroll = Math.max(_get_scroll_percentage(), _max_scroll);
         return;
     }
-    _t = setTimeout(function() {
+    _t = setTimeout(function () {
         _max_scroll = Math.max(_get_scroll_percentage(), _max_scroll);
     }, 400);
 }
@@ -88,7 +90,6 @@ function _sendMaxScroll() {
     ]);
 }
 
-var _maxScrollOpts;
 /**
  * Tracks the max Scroll on the page.
  *
@@ -98,15 +99,17 @@ var _maxScrollOpts;
 function _trackMaxScroll(opts) {
     if (!this._maxScrollTracked) {
         this._maxScrollTracked = true;
-    }else {
+    } else {
         //Oops double tracking detected.
-        return;
+        return false;
     }
     _maxScrollOpts = opts || {};
     _maxScrollOpts['category'] = _maxScrollOpts['category'] || 'Max Scroll';
 
     this._addEventListener(window, 'scroll', _update_scroll_percentage);
     this._addEventListener(window, 'beforeunload', _sendMaxScroll);
+
+    return false;
 }
 
 _gas.push(['_addHook', '_gasTrackMaxScroll', _trackMaxScroll]);

@@ -17,8 +17,8 @@
  */
 function getFormName(el) {
     while (el && el.nodeName !== 'HTML') {
-      if (el.nodeName === 'FORM') {break;}
-      el = el.parentNode;
+        if (el.nodeName === 'FORM') {break; }
+        el = el.parentNode;
     }
     if (el.nodeName === 'FORM') {
         return el.name || el.id || 'none';
@@ -26,12 +26,12 @@ function getFormName(el) {
     return 'none';
 }
 
-var _gasTrackForms = function(opts) {
+var _gasTrackForms = function (opts) {
     if (!this._formTracked) {
         this._formTracked = true;
-    }else {
+    } else {
         //Oops double tracking detected.
-        return;
+        return false;
     }
     var scp = this;
     if (typeof opts !== 'object') {
@@ -42,7 +42,7 @@ var _gasTrackForms = function(opts) {
     opts['category'] = opts['category'] || 'Form Tracking';
     //opts['live'] = opts['live'] || true; //Ignored
 
-    var trackField = function(e) {
+    var trackField = function (e) {
         var el = e.target,
             el_name = el.name || el.id || el.type || el.nodeName,
             form_name = getFormName(el),
@@ -50,9 +50,9 @@ var _gasTrackForms = function(opts) {
             label = el_name + ' (' + e.type + ')';
 
         _gas.push(['_trackEvent', opts['category'], action, label]);
-    }
+    };
 
-    scp._DOMReady(function() {
+    scp._DOMReady(function () {
         var changeTags = ['input', 'select', 'textarea', 'hidden'];
         var submitTags = ['form'];
         var elements = [];
@@ -70,6 +70,7 @@ var _gasTrackForms = function(opts) {
             }
         }
     });
+    return false;
 };
 
 _gas.push(['_addHook', '_gasTrackForms', _gasTrackForms]);

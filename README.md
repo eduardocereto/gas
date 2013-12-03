@@ -14,7 +14,10 @@ To install GAS download the script from [download page][download] and put it som
 your website. Also install the basic snippet on every page of your website. Be
 sure to change the Account Number (UA) and the correct gas.js file location.
 
-[download]: https://github.com/CardinalPath/gas/downloads
+You can also use gas hosted on [cdnjs].
+
+[download]: https://github.com/CardinalPath/gas/releases
+[cdnjs]: http://cdnjs.com/index.html#gas
 
 The basic snippet looks like this:
 
@@ -28,15 +31,19 @@ _gas.push(['_gasTrackForms']);
 _gas.push(['_gasTrackOutboundLinks']);
 _gas.push(['_gasTrackMaxScroll']);
 _gas.push(['_gasTrackDownloads']);
+_gas.push(['_gasTrackVideo']);
+_gas.push(['_gasTrackAudio']);
 _gas.push(['_gasTrackYoutube', {force: true}]);
 _gas.push(['_gasTrackVimeo', {force: true}]);
 _gas.push(['_gasTrackMailto']);
 
 (function() {
 var ga = document.createElement('script');
+ga.id = 'gas-script';
+ga.setAttribute('data-use-dcjs', 'false'); // CHANGE TO TRUE FOR DC.JS SUPPORT
 ga.type = 'text/javascript';
 ga.async = true;
-ga.src = '/gas.js';
+ga.src = '//cdnjs.cloudflare.com/ajax/libs/gas/1.11.0/gas.min.js';
 var s = document.getElementsByTagName('script')[0];
 s.parentNode.insertBefore(ga, s);
 })();
@@ -119,6 +126,22 @@ Tracks clicks on links with `href="mailto:..."`.
 
 - _String_ _opts.category_ : The event category (default value is: "Mailto")
 
+
+### _gasTrackVideo
+`_gas.push(['_gasTrackVideo'])`
+
+Tracks [HTML5 Video][] element events: 'play', 'pause' and 'ended'
+
+[HTML5 Video]: https://developer.mozilla.org/en-US/docs/Using_HTML5_audio_and_video
+
+### _gasTrackAudio
+`_gas.push(['_gasTrackAudio'])`
+
+Tracks [HTML5 Audio][] element events: 'play', 'pause' and 'ended'
+
+[HTML5 Audio]: https://developer.mozilla.org/en-US/docs/Using_HTML5_audio_and_video
+
+
 ### _gasTrackVimeo
 `_gas.push(['_gasTrackVimeo', opts])`
 
@@ -185,6 +208,79 @@ _gas.push(['_gasTrackYoutube', {
 ```
 
 This will setup Youtube Video Tracking so that events will be fired at 25%, 50%, 75% and 90% in addition to the other standard events, 'play', 'pause', 'finish'.
+
+### _gasMeta
+`_gas.push(['_gasMeta']);`
+
+This function should be called before `_trackPageview`. It will look for
+Custom Variables as meta elements with `name="ga_custom_var"`. It will also
+look for metas with `name="ga_vpv"` to be used as virtual pagepaths for
+`_trackPageview`. Note that ga_vpv will only be aplied when `_trackPageview` is
+called with no parameters.
+
+For metas to control customVars the parameters are the same as calling
+`_setCustomVar` but they are delimeted by a caret (^).
+
+eg:
+
+``` html
+<meta name="ga_vpv" content="/virtual_url" />
+<meta name="ga_custom_var" content="1^Category^Trucks^3" />
+<meta name="ga_custom_var" content="2^SignedIn^true^2" />
+<meta name="ga_custom_var" content="3^A/B^Original^2" />
+```
+
+### _gasMetaEcommerce
+`_gas.push(['_gasMetaEcommerce']);`
+
+Will look for ecommerce transactions as meta elements. The parameters are the
+same as calling the javascript functions but must be separated by a caret (^).
+
+eg:
+
+``` html
+<meta name="ga_trans" content="1234^Acme Clothing^35.97^1.29^5^San Jose^California^USA" />
+<meta name="ga_item" content="1234^DD44^T-Shirt^Green Medium^11.99^1" />
+<meta name="ga_item" content="1234^DD45^T-Shirt^Red Medium^11.99^2" />
+```
+
+### _gasHTMLMarkup
+`_gas.push(['_gasHTMLMarkup']);`
+
+Will enable HTML markup to define events and social hits. It uses attributes
+for setting events and social actions.
+
+For events the required attributes are `x-ga-event-categoy` and
+`x-ga-event-action`.
+
+eg:
+
+``` html
+<div x-ga-event-category="Video"
+     x-ga-event-action="play"
+     x-ga-event-label="Video Name"
+     x-ga-event-value="0"
+     x-ga-event-noninteractive="false"
+>
+        <a href="(...)">Play Video</a>
+</div>
+```
+
+For Social Actions the required attributes are `x-ga-social-network` and
+`x-ga-social-action`.
+
+eg:
+
+``` html
+<div x-ga-social-network="Pinterest"
+     x-ga-social-action="Pin It"
+     x-ga-social-target="/targeturlTest.aspx"
+     x-ga-social-pagepath="/basePagePath.php"
+>
+        <a href="(...)">Pin It</a>
+</div>
+```
+
 
 ## Other GAS Features
 
@@ -312,3 +408,22 @@ _gas.push(['_addHook', '_setVar', function(val){
 The above Hook will intercept and cancel any call to the, now deprecated, 
 `_setVar`. It will then trigger a call to `_setCustomVar` with an
 equivalent value.
+
+### In Page Analytics / Enhanced Link Attribution
+
+Add the following snippet before your `_gas.push(['_trackPageView])` call. Read Google's [In Page Analytics / Enhanced Link Attribution documentation][ela] for more information.
+
+```javascript
+_gas.push(['_require', 'inpage_linkid', 
+    '//www.google-analytics.com/plugins/ga/inpage_linkid.js']);
+```
+
+[ela]: https://support.google.com/analytics/answer/2558867?hl=en&hlrm=nl
+
+### Display Advertising Support
+
+Available in versions 1.11.0+, you can include dc.js instead of ga.js through GAS by changing the setAttribute line of the default snippet to
+
+```
+ga.setAttribute('data-use-dcjs', 'true');
+```

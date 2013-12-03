@@ -16,11 +16,13 @@
  *
  * @constructor
  */
-var GasHelper = function() {
+/*jshint -W079*/
+var GasHelper = function () {
     this._setDummyTracker();
 };
+/*jshint +W079*/
 
-GasHelper.prototype._setDummyTracker = function() {
+GasHelper.prototype._setDummyTracker = function () {
     if (!this['tracker']) {
         var trackers = window['_gat']['_getTrackers']();
         if (trackers.length > 0) {
@@ -36,7 +38,7 @@ GasHelper.prototype._setDummyTracker = function() {
  * @param {object} item Item to search form.
  * @return {boolean} true if contains.
  */
-GasHelper.prototype.inArray = function(obj, item) {
+GasHelper.prototype.inArray = function (obj, item) {
     if (obj && obj.length) {
         for (var i = 0; i < obj.length; i++) {
             if (obj[i] === item) {
@@ -45,31 +47,6 @@ GasHelper.prototype.inArray = function(obj, item) {
         }
     }
     return false;
-};
-
-/**
- * Removes special characters and Lowercase String
- *
- * @param {string} str to be sanitized.
- * @param {boolean} strict_opt If we should remove any non ascii char.
- * @return {string} Sanitized string.
- */
-GasHelper.prototype._sanitizeString = function(str, strict_opt) {
-    str = str.toLowerCase()
-        .replace(/^\ +/, '')
-        .replace(/\ +$/, '')
-        .replace(/\s+/g, '_')
-        .replace(/[áàâãåäæª]/g, 'a')
-        .replace(/[éèêëЄ€]/g, 'e')
-        .replace(/[íìîï]/g, 'i')
-        .replace(/[óòôõöøº]/g, 'o')
-        .replace(/[úùûü]/g, 'u')
-        .replace(/[ç¢©]/g, 'c');
-
-    if (strict_opt) {
-        str = str.replace(/[^a-z0-9_-]/g, '_');
-    }
-    return str.replace(/_+/g, '_');
 };
 
 /**
@@ -86,8 +63,8 @@ GasHelper.prototype._sanitizeString = function(str, strict_opt) {
  * it.
  * @return {boolean} true if it was successfuly binded.
  */
-GasHelper.prototype._addEventListener = function(obj, evt, ofnc, bubble) {
-    var fnc = function(event) {
+GasHelper.prototype._addEventListener = function (obj, evt, ofnc, bubble) {
+    var fnc = function (event) {
         if (!event || !event.target) {
             event = window.event;
             event.target = event.srcElement;
@@ -109,12 +86,12 @@ GasHelper.prototype._addEventListener = function(obj, evt, ofnc, bubble) {
         if (typeof obj[evt] === 'function') {
             // Object already has a function on traditional
             // Let's wrap it with our own function inside another function
-            fnc = (function(f1, f2) {
-                return function() {
+            fnc = (function (f1, f2) {
+                return function () {
                     f1.apply(this, arguments);
                     f2.apply(this, arguments);
-                }
-            })(obj[evt], fnc);
+                };
+            }(obj[evt], fnc));
         }
         obj[evt] = fnc;
         return true;
@@ -127,21 +104,21 @@ GasHelper.prototype._addEventListener = function(obj, evt, ofnc, bubble) {
  * Binds to the document root. Listens to all events of the specific type.
  * If event don't bubble it won't catch
  */
-GasHelper.prototype._liveEvent = function(tag, evt, ofunc) {
+GasHelper.prototype._liveEvent = function (tag, evt, ofunc) {
     var gh = this;
     tag = tag.toUpperCase();
     tag = tag.split(',');
 
-    gh._addEventListener(document, evt, function(me) {
-        for (var el = me.target; el.nodeName !== 'HTML';
-            el = el.parentNode)
+    gh._addEventListener(document, evt, function (me) {
+        var el = me.target;
+
+        while (el && el.nodeName && el.nodeName.toUpperCase() !== 'HTML')
         {
-            if (gh.inArray(tag, el.nodeName) || el.parentNode === null) {
+            if (gh.inArray(tag, el.nodeName)) {
+                ofunc.call(el, me);
                 break;
             }
-        }
-        if (el && gh.inArray(tag, el.nodeName)) {
-            ofunc.call(el, me);
+            el = el.parentNode;
         }
 
     }, true);
@@ -155,16 +132,15 @@ GasHelper.prototype._liveEvent = function(tag, evt, ofunc) {
  * @param {function(Event)} callback DOMReady callback.
  * @return {boolean} Ignore return value.
  */
-GasHelper.prototype._DOMReady = function(callback) {
+GasHelper.prototype._DOMReady = function (callback) {
     var scp = this;
-    if (/^(interactive|complete)/.test(document.readyState)) return cb();
-    this._addEventListener(document, 'DOMContentLoaded', cb, false);
-    this._addEventListener(window, 'load', cb, false);
-
     function cb() {
         if (cb.done) return;
         cb.done = true;
         callback.apply(scp, arguments);
     }
+    if (/^(interactive|complete)/.test(document.readyState)) return cb();
+    this._addEventListener(document, 'DOMContentLoaded', cb, false);
+    this._addEventListener(window, 'load', cb, false);
 };
 
